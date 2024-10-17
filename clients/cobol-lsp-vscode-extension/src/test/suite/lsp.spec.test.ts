@@ -21,7 +21,7 @@ import * as path from "path";
 suite("Integration Test Suite", function () {
   suiteSetup(async function () {
     this.timeout(0);
-    helper.updateConfig("basic.json");
+    await helper.updateConfig("basic.json");
     await helper.activate();
   });
 
