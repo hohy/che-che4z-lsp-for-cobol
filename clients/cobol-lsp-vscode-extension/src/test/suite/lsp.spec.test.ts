@@ -295,9 +295,10 @@ suite("Integration Test Suite", function () {
     async () => {
       const extSrcUser1FilePath = path.join(".c4z", ".extsrcs", "USER1.cbl");
       const user1FilePath = "USER1.cbl";
-      helper.recursiveCopySync(
-        path.join(getWorkspacePath(), user1FilePath),
-        path.join(getWorkspacePath(), extSrcUser1FilePath),
+      await vscode.workspace.fs.copy(
+        vscode.Uri.file(path.join(getWorkspacePath(), user1FilePath)),
+        vscode.Uri.file(path.join(getWorkspacePath(), extSrcUser1FilePath)),
+        { overwrite: true },
       );
 
       let editor = await helper.showDocument(extSrcUser1FilePath);
