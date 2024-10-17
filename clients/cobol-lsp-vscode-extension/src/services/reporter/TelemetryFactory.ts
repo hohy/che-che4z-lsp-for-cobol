@@ -12,11 +12,10 @@
  *   Broadcom, Inc. - initial API and implementation
  */
 
-import { TelemetryReport } from "./TelemetryReport";
 import { TelemetryReporterImpl } from "./TelemetryReporterImpl";
 
 export class TelemetryFactory {
-  public static getReporter(): TelemetryReport {
-    return TelemetryReporterImpl.getInstance();
+  public static async getReporter() {
+    return await TelemetryReporterImpl.getInstance();
   }
 }

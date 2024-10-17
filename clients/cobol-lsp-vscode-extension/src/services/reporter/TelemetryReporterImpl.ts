@@ -11,7 +11,6 @@
  * Contributors:
  *   Broadcom, Inc. - initial API and implementation
  */
-import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import TelemetryReporter from "@vscode/extension-telemetry";
@@ -19,12 +18,13 @@ import { EXTENSION_ID, TELEMETRY_DEFAULT_CONTENT } from "../../constants";
 
 import { TelemetryEvent } from "./model/TelemetryEvent";
 import { TelemetryReport } from "./TelemetryReport";
+import { TextDecoder } from "util";
 
 export class TelemetryReporterImpl implements TelemetryReport {
-  public static getInstance(): TelemetryReporterImpl {
+  public static async getInstance() {
     if (!TelemetryReporterImpl.instance) {
       TelemetryReporterImpl.instance = new TelemetryReporterImpl(
-        this.getTelemetryKeyId(),
+        await this.getTelemetryKeyId(),
       );
     }
     return TelemetryReporterImpl.instance;
@@ -37,25 +37,26 @@ export class TelemetryReporterImpl implements TelemetryReport {
    * external file configuration. If the file doesn't exists it returns a generic value that will not be valid
    * for collect telemetry event.
    */
-  private static getTelemetryKeyId(): string {
-    return fs.existsSync(this.getTelemetryResourcePath())
-      ? this.getInstrumentationKey()
-      : TELEMETRY_DEFAULT_CONTENT;
+  private static async getTelemetryKeyId() {
+    const key = await this.getInstrumentationKey();
+    return key ?? TELEMETRY_DEFAULT_CONTENT;
   }
 
   private static getTelemetryResourcePath() {
     const extPath = vscode.extensions.getExtension(EXTENSION_ID)!.extensionPath;
-    return vscode.Uri.file(path.join(extPath, "resources", "TELEMETRY_KEY"))
-      .fsPath;
+    return vscode.Uri.file(path.join(extPath, "resources", "TELEMETRY_KEY"));
   }
 
-  private static getInstrumentationKey(): string {
-    return Buffer.from(
-      fs.readFileSync(this.getTelemetryResourcePath(), "utf8"),
-      "base64",
-    )
-      .toString()
-      .trim();
+  private static async getInstrumentationKey() {
+    try {
+      const rawFile = await vscode.workspace.fs.readFile(
+        this.getTelemetryResourcePath(),
+      );
+      const textData = new TextDecoder().decode(rawFile);
+      return Buffer.from(textData, "base64").toString().trim();
+    } catch (_error) {
+      // unable to read TELEMETRY_KEY
+    }
   }
 
   private static convertData(content: TelemetryEvent) {
@@ -94,7 +95,7 @@ export class TelemetryReporterImpl implements TelemetryReport {
     }
   }
 
-  public dispose(): any {
+  public dispose() {
     this.reporter.dispose();
   }
 

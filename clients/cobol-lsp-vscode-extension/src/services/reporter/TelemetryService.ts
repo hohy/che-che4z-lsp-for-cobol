@@ -44,14 +44,14 @@ export class TelemetryService {
    * @param notes optional brief description
    * @param telemetryMeasurement optional set of numeric data with a key name
    */
-  public static registerEvent(
+  public static async registerEvent(
     eventName: string,
     categories?: string[],
     notes?: string,
     telemetryMeasurement?: TelemetryEventMeasurements,
-  ): void {
+  ) {
     if (this.isValidEventName(eventName)) {
-      TelemetryFactory.getReporter().reportEvent(
+      (await TelemetryFactory.getReporter()).reportEvent(
         this.createTelemetryEvent(
           eventName,
           categories!,
@@ -72,15 +72,15 @@ export class TelemetryService {
    * @param notes optional brief description
    * @param telemetryMeasurement optional set of numeric data with a key name
    */
-  public static registerExceptionEvent(
+  public static async registerExceptionEvent(
     eventName = "RuntimeException",
     rootCause: string,
     categories?: string[],
     notes?: string,
     telemetryMeasurement?: TelemetryEventMeasurements,
-  ): void {
+  ) {
     if (this.isValidEventName(eventName) && this.isValidRootCause(rootCause)) {
-      TelemetryFactory.getReporter().reportExceptionEvent(
+      (await TelemetryFactory.getReporter()).reportExceptionEvent(
         this.createTelemetryEvent(
           eventName,
           categories!,
