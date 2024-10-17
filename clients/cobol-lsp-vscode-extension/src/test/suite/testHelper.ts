@@ -15,6 +15,7 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { LANGUAGE_ID } from "../../constants";
 
 export const TEST_TIMEOUT = 150000;
 
@@ -77,6 +78,13 @@ export async function showDocument(workspace_file: string) {
   });
 
   return editor;
+}
+
+export async function openUntitledDocument(languageId = LANGUAGE_ID) {
+  await vscode.commands.executeCommand(
+    "workbench.action.files.newUntitledFile",
+    { languageId },
+  );
 }
 
 export async function closeActiveEditor() {
