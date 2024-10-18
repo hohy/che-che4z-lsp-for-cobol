@@ -83,9 +83,7 @@ async function main() {
     },
 
     plugins: [
-      polyfillNode({
-        polyfills: { fs: true },
-      }),
+      polyfillNode({}),
       testBundlePlugin,
       esbuildProblemMatcherPlugin /* add to the end of plugins array */,
     ],
