@@ -60,12 +60,27 @@ suite("Integration Test Suite", function () {
   test("TC288736 error message for 80chars limit", async () => {
     await helper.showDocument("TEST.CBL");
     const editor = helper.getEditor("TEST.CBL");
+
+    // wait for diagnostics of the original document
+    await helper.waitFor(
+      () => vscode.languages.getDiagnostics(editor.document.uri).length > 0,
+    );
+    const diagnosticsCount = vscode.languages.getDiagnostics(
+      editor.document.uri,
+    ).length;
+
+    // modify document to be over 80 chars
     const noise =
       "oi3Bd5kC1f3nMFp0IWg62ZZgWMxHPJnuLWm4DqplZDzMIX69C6vjeL24YbobdQnoQsDenL35omljznHd0l1fP";
     await helper.insertString(editor, pos(22, 7), noise);
+
+    // wait for the diagnostics update
     await helper.waitFor(
-      () => vscode.languages.getDiagnostics(editor.document.uri).length > 3,
+      () =>
+        vscode.languages.getDiagnostics(editor.document.uri).length >
+        diagnosticsCount,
     );
+
     const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
     for (const d of diagnostics) {
       if (d.range.start.line === 22) {
