@@ -14,7 +14,7 @@
 
 import * as vscode from "vscode";
 import { Selection } from "vscode";
-import { getTabSettings, type TabSettings } from "../services/SmartTabSettings";
+import { getTabSettings, TabSettings } from "../services/SmartTabSettings";
 
 const SMART_TAB_COMMAND: string = "cobol-lsp.smart-tab";
 const SMART_OUTDENT_COMMAND: string = "cobol-lsp.smart-outdent";
@@ -619,12 +619,7 @@ function getCurrentPositionToNextPositionMap(
     const column = currentLine.firstNonWhitespaceCharacterIndex;
     result.set(
       currentLine,
-      getNextPosition(
-        editor,
-        column,
-        SettingsService.getTabSettings(),
-        currentLine.lineNumber,
-      ),
+      getNextPosition(editor, column, getTabSettings(), currentLine.lineNumber),
     );
   }
   return result;
