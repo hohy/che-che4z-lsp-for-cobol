@@ -34,6 +34,9 @@ public class CICSOptionsCheckUtility {
         CICSAllocateOptionsCheckUtility.RULE_INDEX,
         new CICSAllocateOptionsCheckUtility(context, errors));
     optionsMap.put(
+      CICSBifOptionsCheckUtility.RULE_INDEX,
+        new CICSBifOptionsCheckUtility(context, errors));
+    optionsMap.put(
         CICSAsktimeOptionsCheckUtility.RULE_INDEX,
         new CICSAsktimeOptionsCheckUtility(context, errors));
     optionsMap.put(
@@ -69,6 +72,9 @@ public class CICSOptionsCheckUtility {
     optionsMap.put(
         CICSCancelOptionsCheckUtility.RULE_INDEX,
         new CICSCancelOptionsCheckUtility(context, errors));
+    optionsMap.put(
+        CICSWebOptionsCheckUtility.RULE_INDEX,
+        new CICSWebOptionsCheckUtility(context, errors));
     optionsMap.put(
         CICSEndBrowseOptionsUtility.RULE_ENDBR_INDEX,
         new CICSEndBrowseOptionsUtility(context, errors));
