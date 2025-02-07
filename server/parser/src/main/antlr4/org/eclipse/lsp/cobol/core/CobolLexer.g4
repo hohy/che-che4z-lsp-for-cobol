@@ -680,6 +680,7 @@ PROCEDURE              : P R O C E D U R E ;
 PROCEDURE_POINTER      : P R O C E D U R E MINUSCHAR P O I N T E R ;
 PROCEDURES             : P R O C E D U R E S ;
 PROCEED                : P R O C E E D ;
+PROCESS                : P R O C E S S;
 PROCESSING             : P R O C E S S I N G {enableCobolSpecialSeparators = false;};
 PROGRAM                : P R O G R A M ;
 PROGRAM_ID             : P R O G R A M MINUSCHAR I D ;
@@ -920,6 +921,8 @@ COMMASEPARATOR : ', '  {enableCobolSpecialSeparators}? -> channel(HIDDEN);
 mode PICTURECLAUSE;
 FINALCHARSTRING: CHARSTRING+ ->popMode;
 DOT_FS2 : '.' EOF? -> popMode;
+SINGLE_U_CHAR_BYTE_LENGTH: U (WS2 | '\n' | '\r')+ BYTE_LENGTH_P ->popMode;
+BYTE_LENGTH_P: B Y T E MINUSCHAR L E N G T H;
 CHARSTRING: PICTURECHARSGROUP1+ PICTURECHARSGROUP2? LParIntegralRPar? '.'? (PICTURECHARSGROUP1|PICTURECHARSGROUP2)
 			PICTURECHARSGROUP1+ PICTURECHARSGROUP2? LParIntegralRPar?|
 			PICTURECHARSGROUP1* '.' PICTUREPeriodAcceptables+ LParIntegralRPar?|

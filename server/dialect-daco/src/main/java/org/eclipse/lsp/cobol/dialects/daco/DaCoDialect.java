@@ -32,7 +32,9 @@ import org.eclipse.lsp.cobol.common.processor.ProcessingPhase;
 import org.eclipse.lsp.cobol.common.processor.ProcessorDescription;
 import org.eclipse.lsp.cobol.common.utils.KeywordsUtils;
 import org.eclipse.lsp.cobol.dialects.daco.nodes.DaCoCopyFromNode;
+import org.eclipse.lsp.cobol.dialects.daco.nodes.SortTableNode;
 import org.eclipse.lsp.cobol.dialects.daco.processors.DaCoCopyFromProcessor;
+import org.eclipse.lsp.cobol.dialects.daco.processors.DaCoObsoleteNodeCheck;
 import org.eclipse.lsp.cobol.dialects.daco.processors.implicit.DaCoImplicitCodeProcessor;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
@@ -118,7 +120,7 @@ public final class DaCoDialect implements CobolDialect {
     Matcher matcher = dcdbPattern.matcher(input);
     while (matcher.find()) {
       Position start = DialectUtils.findPosition(input, matcher.start());
-      Position end = DialectUtils.findPosition(input, matcher.end() - 2);
+      Position end = DialectUtils.findPosition(input, matcher.end() - 1);
       String replace = new String(new char[matcher.end() - matcher.start() - 1]).replace('\0', ' ');
       extendedDocument.replace(new Range(start, end), replace);
     }
@@ -137,11 +139,9 @@ public final class DaCoDialect implements CobolDialect {
   @Override
   public List<ProcessorDescription> getProcessors() {
     return ImmutableList.of(
-        new ProcessorDescription(
-            DaCoCopyFromNode.class, ProcessingPhase.POST_DEFINITION,
-                new DaCoCopyFromProcessor()),
-        new ProcessorDescription(ProgramNode.class, ProcessingPhase.POST_DEFINITION,
-                new DaCoImplicitCodeProcessor())
+        new ProcessorDescription(DaCoCopyFromNode.class, ProcessingPhase.POST_DEFINITION, new DaCoCopyFromProcessor()),
+        new ProcessorDescription(ProgramNode.class, ProcessingPhase.POST_DEFINITION, new DaCoImplicitCodeProcessor()),
+        new ProcessorDescription(SortTableNode.class, ProcessingPhase.VALIDATION, new DaCoObsoleteNodeCheck())
     );
   }
 

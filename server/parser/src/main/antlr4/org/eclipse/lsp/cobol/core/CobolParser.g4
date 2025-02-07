@@ -156,15 +156,11 @@ classRepositoryClause
     ;
 
 functionRepositoryClause
-    : functionReference | intrinsicClause
+    : FUNCTION (functionName+ INTRINSIC? | ALL INTRINSIC)
     ;
 
 functionReference
     : FUNCTION functionName
-    ;
-
-intrinsicClause
-    : (functionName* | ALL) INTRINSIC
     ;
 
 // - source computer paragraph ----------------------------------
@@ -491,7 +487,7 @@ recordContainsClauseFormat1
    ;
 
 recordContainsClauseFormat2
-   : IS? VARYING IN? SIZE? ((FROM? integerLiteral)? recordContainsTo? CHARACTERS?)? (DEPENDING ON? qualifiedDataName)?
+   : IS? VARYING IN? SIZE? (FROM? integerLiteral)? recordContainsTo? CHARACTERS? (DEPENDING ON? qualifiedDataName)?
    ;
 
 recordContainsClauseFormat3
@@ -660,11 +656,12 @@ dataOccursSort
    ;
 
 dataPictureClause
-   : (PICTURE | PIC) PICTUREIS? pictureString+
+   : (PICTURE | PIC) PICTUREIS? pictureString
    ;
 
 pictureString
    : charString
+   | SINGLE_U_CHAR_BYTE_LENGTH IS? integerLiteral // this case specifically handles single U and BYTE-LENGTH clause
    ;
 
 dataDynamicLengthClause
@@ -811,10 +808,6 @@ procedureDivisionBody
    ;
 
 // -- procedure section ----------------------------------
-
-procedureSection
-   : procedureSectionHeader dot_fs paragraphs
-   ;
 
 sentence
    : statement * endClause
@@ -1324,8 +1317,12 @@ freeStatement
 // exit statement
 
 exitStatement
-   : EXIT (PROGRAM | SECTION | PARAGRAPH | PERFORM CYCLE? | METHOD)?
+   : EXIT (PROGRAM | SECTION | PARAGRAPH | exitPerform | METHOD)?
    ;
+
+exitPerform
+    : PERFORM CYCLE?
+    ;
 
 // generate statement
 
@@ -1589,8 +1586,12 @@ performTimes
    ;
 
 performUntil
-   : performTestClause? UNTIL condition
+   : performTestClause? performUntilCondition
    ;
+
+performUntilCondition
+    : UNTIL (EXIT | condition)
+    ;
 
 performVarying
    : performTestClause performVaryingClause | performVaryingClause performTestClause?
@@ -2187,8 +2188,10 @@ length
    ;
 
 argument
-   : arithmeticExpression
-   | TRAILING | LEADING
+   : ALL
+   | arithmeticExpression
+   | TRAILING
+   | LEADING
    ;
 
 // qualified data name ----------------------------------
@@ -2198,12 +2201,13 @@ qualifiedDataName
    ;
 
 tableCall
-   : LPARENCHAR (ALL | arithmeticExpression) (COMMACHAR? (ALL | arithmeticExpression))* RPARENCHAR
+   : LPARENCHAR argument (COMMACHAR? argument)* RPARENCHAR
    ;
 
 specialRegister
    : ADDRESS OF generalIdentifier
-   | LENGTH OF? generalIdentifier | LINAGE_COUNTER
+   | LENGTH OF? generalIdentifier
+   | LINAGE_COUNTER
    ;
 
 // in ----------------------------------

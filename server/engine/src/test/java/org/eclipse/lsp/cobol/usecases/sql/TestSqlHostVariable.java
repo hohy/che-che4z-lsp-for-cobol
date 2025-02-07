@@ -220,7 +220,7 @@ public class TestSqlHostVariable {
                   + "         Working-Storage Section.\n"
                   + "       01 {$*VAR1}.\n"
                   + "          04 {$*VAR5`->VAR5`->VAR5-LENGTH`->VAR5-DATA} USAGE IS SQL TYPE IS CLOB (20) OCCURS 30 TIMES.\n"
-                  + "          04 {$*VAR6`->VAR6`->VAR6-LENGTH`->VAR6-DATA} USAGE IS SQL TYPE IS DBCLOB (30 K) OCCURS 40.\n"
+                  + "          04 {$*VAR6`->VAR6`->VAR6-LENGTH`->VAR6-DATA} USAGE IS SQL TYPE IS DBCLOB (30K) OCCURS 40.\n"
                   + "        PROCEDURE DIVISION.\n"
                   + "           DISPLAY {$VAR1}.\n";
 
@@ -398,7 +398,7 @@ public class TestSqlHostVariable {
                             new Range(),
                             "Allowed range is 1 to 255",
                             DiagnosticSeverity.Error,
-                            ErrorSource.PARSING.getText())));
+                            ErrorSource.PREPROCESSING.getText())));
   }
 
   @Test
@@ -412,7 +412,7 @@ public class TestSqlHostVariable {
                             new Range(),
                             "Allowed range is 1 to 255",
                             DiagnosticSeverity.Error,
-                            ErrorSource.PARSING.getText()
+                            ErrorSource.PREPROCESSING.getText()
                     )
             )
     );
@@ -429,7 +429,7 @@ public class TestSqlHostVariable {
                             new Range(),
                             "Allowed range is 1 to 32704",
                             DiagnosticSeverity.Error,
-                            ErrorSource.PARSING.getText()
+                            ErrorSource.PREPROCESSING.getText()
                     )
             )
     );
@@ -446,7 +446,7 @@ public class TestSqlHostVariable {
                             new Range(),
                             "Allowed range is 1 to 32704",
                             DiagnosticSeverity.Error,
-                            ErrorSource.PARSING.getText()
+                            ErrorSource.PREPROCESSING.getText()
                     )
             )
     );
@@ -466,7 +466,7 @@ public class TestSqlHostVariable {
   void testLobVariables_dbclobPicClause_sizePrefix() {
     AnalysisResult actual = UseCaseEngine.runTest(LOD_VARS_TEXT_DBCLOB, ImmutableList.of(), ImmutableMap.of());
     actual.getSymbolTableMap().values().stream()
-            .findFirst().flatMap(firstSymbolTable -> firstSymbolTable.getVariables().values().stream()
+            .findFirst().flatMap(firstSymbolTable -> firstSymbolTable.getVariables().stream()
                     .filter(item -> "VAS-DATA".equals(item.getName()))
                     .findFirst())
             .ifPresent(varNode -> assertEquals("G(10 K)", ((ElementaryNode) varNode).getPicClause()));
@@ -476,7 +476,7 @@ public class TestSqlHostVariable {
   void testLobVariables_dbclobPicClause() {
     AnalysisResult actual = UseCaseEngine.runTest(LOD_VARS_TEXT_DBCLOB, ImmutableList.of(), ImmutableMap.of());
     actual.getSymbolTableMap().values().stream()
-            .findFirst().flatMap(firstSymbolTable -> firstSymbolTable.getVariables().values().stream()
+            .findFirst().flatMap(firstSymbolTable -> firstSymbolTable.getVariables().stream()
                     .filter(item -> "VAR-DATA".equals(item.getName()))
                     .findFirst())
             .ifPresent(varNode -> assertEquals("G(30)", ((ElementaryNode) varNode).getPicClause()));
@@ -505,7 +505,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 2 to 48",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -523,7 +523,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 2 to 48",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -541,7 +541,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 2 to 48",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -554,7 +554,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 1 to 32767",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -572,7 +572,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 1 to 32767",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -585,7 +585,7 @@ public class TestSqlHostVariable {
                     new Range(),
                     "Allowed range is 2 to 48",
                     DiagnosticSeverity.Error,
-                    ErrorSource.PARSING.getText()
+                    ErrorSource.PREPROCESSING.getText()
             )
     ));
   }
@@ -644,7 +644,7 @@ public class TestSqlHostVariable {
                             new Range(),
                             "Allowed range is 1 to 32767",
                             DiagnosticSeverity.Error,
-                            ErrorSource.PARSING.getText()
+                            ErrorSource.PREPROCESSING.getText()
                     )
             )
     );
@@ -661,7 +661,7 @@ public class TestSqlHostVariable {
                 new Range(),
                 "Allowed range is 1 to 32767",
                 DiagnosticSeverity.Error,
-                ErrorSource.PARSING.getText())));
+                ErrorSource.PREPROCESSING.getText())));
   }
 
   @Test

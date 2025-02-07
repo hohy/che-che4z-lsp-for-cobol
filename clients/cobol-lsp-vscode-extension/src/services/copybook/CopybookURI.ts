@@ -11,12 +11,12 @@
  * Contributors:
  *   Broadcom, Inc. - initial API and implementation
  */
-import * as path from "node:path";
 import { COPYBOOKS_FOLDER, ZOWE_FOLDER } from "../../constants";
 import { SettingsService } from "../Settings";
 import { ProfileUtils } from "../util/ProfileUtils";
 import { EndevorType, ResolvedProfile } from "../../type/e4eApi.d";
 import { Utils } from "../util/Utils";
+import * as vscode from "vscode";
 
 /**
  * This class is responsible to identify from which source resolve copybooks required by the server.
@@ -28,14 +28,14 @@ export class CopybookURI {
     copybook: string,
     downloadFolder: string,
   ): string {
-    const copybookDirPath = path.join(
-      downloadFolder,
+    return vscode.Uri.joinPath(
+      vscode.Uri.file(downloadFolder),
       ZOWE_FOLDER,
       COPYBOOKS_FOLDER,
       profileName,
       dataset,
-    );
-    return path.join(copybookDirPath, copybook);
+      copybook,
+    ).fsPath;
   }
 
   public static createDatasetPath(
@@ -44,13 +44,13 @@ export class CopybookURI {
     downloadFolder: string,
     source: string = ZOWE_FOLDER,
   ): string {
-    return path.join(
-      downloadFolder,
+    return vscode.Uri.joinPath(
+      vscode.Uri.file(downloadFolder),
       source,
       COPYBOOKS_FOLDER,
       profileName,
       dataset,
-    );
+    ).fsPath;
   }
   /**
    * This method produce an array with element that following the schema
@@ -70,45 +70,43 @@ export class CopybookURI {
       zoweExplorerApi,
     );
 
-    let result: string[] = [];
+    const result: string[] = [];
     const datasets: string[] = SettingsService.getDsnPath(
       documentUri,
       dialectType,
     );
     if (profile && datasets) {
-      result = Object.assign([], datasets);
-      result.forEach(
-        (value, index) =>
-          (result[index] = path.join(downloadFolder, profile, value)),
-      );
+      datasets.map((dataset) => {
+        result.push(
+          vscode.Uri.joinPath(vscode.Uri.file(downloadFolder), profile, dataset)
+            .fsPath,
+        );
+      });
     }
 
     const ussPaths: string[] = SettingsService.getUssPath(
       documentUri,
       dialectType,
     );
-    const baseIndex = result.length;
     if (profile && ussPaths) {
-      Object.assign([], ussPaths).forEach(
-        (value, index) =>
-          (result[index + baseIndex] = path.join(
-            downloadFolder,
-            profile,
-            value,
-          )),
-      );
+      ussPaths.map((ussPath) => {
+        result.push(
+          vscode.Uri.joinPath(vscode.Uri.file(downloadFolder), profile, ussPath)
+            .fsPath,
+        );
+      });
     }
     return result;
   }
 
   public static getEnviromentPath(type: EndevorType, profile: ResolvedProfile) {
-    return path.join(
-      Utils.profileAsString(profile),
+    return vscode.Uri.joinPath(
+      vscode.Uri.file(Utils.profileAsString(profile)),
       type.environment,
       type.stage,
       type.system,
       type.subsystem,
       type.type,
-    );
+    ).fsPath;
   }
 }

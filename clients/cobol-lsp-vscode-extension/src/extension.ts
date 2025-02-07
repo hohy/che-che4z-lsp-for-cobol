@@ -110,9 +110,8 @@ export async function activate(
   context: vscode.ExtensionContext,
 ): Promise<__ExtensionApi & __AnalysisApi> {
   DialectRegistry.clear();
-  const { copyBooksDownloader, configurationWatcher } = await initialize(
-    context,
-  );
+  const { copyBooksDownloader, configurationWatcher } =
+    await initialize(context);
   initSmartTab(context);
 
   TelemetryService.registerEvent(
@@ -157,7 +156,7 @@ export async function activate(
   // Custom client handlers
   languageClientService.addRequestHandler(
     "cobol/resolveSubroutine",
-    resolveSubroutineURI.bind(undefined, context.globalStorageUri.fsPath),
+    resolveSubroutineURI,
   );
   languageClientService.addRequestHandler(
     "copybook/resolve",

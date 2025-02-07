@@ -11,7 +11,7 @@
  * Contributors:
  *   Broadcom, Inc. - initial API and implementation
  */
-import path = require("path");
+import * as path from "path";
 import type {
   OutputChannel as OutputChannelType,
   Position as PositionType,
@@ -51,6 +51,7 @@ export namespace workspace {
   export function onDidChangeConfiguration() {}
   export const textDocuments = [];
   export function getWorkspaceFolder() {}
+  export async function findFiles() {}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -133,11 +134,17 @@ export enum EndOfLine {
 }
 
 export class Range {
-  constructor(public start: Position, public end: Position) {}
+  constructor(
+    public start: Position,
+    public end: Position,
+  ) {}
 }
 
 export class Position {
-  constructor(public line: number, public character: number) {}
+  constructor(
+    public line: number,
+    public character: number,
+  ) {}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -158,7 +165,10 @@ export const TextEditor = {
 export class Selection {
   public start?: PositionType;
   public end?: PositionType;
-  constructor(public anchor: PositionType, public active: PositionType) {}
+  constructor(
+    public anchor: PositionType,
+    public active: PositionType,
+  ) {}
 }
 
 export const CodeActionKind = {
@@ -192,3 +202,21 @@ export const languages = {
   registerCodeActionsProvider: jest.fn(),
   registerCompletionItemProvider: jest.fn(),
 };
+
+class FileNotFound extends Error {
+  code: string;
+  constructor() {
+    super();
+    this.code = "FileNotFound";
+  }
+}
+
+export const FileSystemError = {
+  FileNotFound: () => {
+    return new FileNotFound();
+  },
+};
+
+export const RelativePattern = jest
+  .fn()
+  .mockImplementation((base: string, pattern: string) => ({ base, pattern }));

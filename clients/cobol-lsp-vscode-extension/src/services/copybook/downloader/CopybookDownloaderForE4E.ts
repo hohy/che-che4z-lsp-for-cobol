@@ -12,8 +12,6 @@
  *   Broadcom, Inc. - initial API and implementation
  */
 import * as vscode from "vscode";
-import * as fs from "node:fs";
-import * as Path from "node:path";
 import {
   EndevorElement,
   EndevorMember,
@@ -34,9 +32,11 @@ import {
   USE_MAP,
 } from "../../../constants";
 import { CopybookName } from "../CopybookDownloadService";
-import { Utils } from "../../util/Utils";
+import { hasMember, Utils } from "../../util/Utils";
 import { searchCopybookInExtensionFolder } from "../../util/FSUtils";
 import { getErrorMessage } from "../../util/ErrorsUtils";
+import { SettingsService } from "../../Settings";
+import { getChannel } from "../../../extension";
 
 const defaultConfigs: ExternalConfigurationOptions = {
   compiler: "IGYCRCTL",
@@ -63,8 +63,15 @@ export class CopybookDownloaderForE4E {
     const profile = await this.e4e.getProfileInfo(uri);
     if (profile instanceof Error) throw profile;
 
+    const compiler = SettingsService.getLspConfigCompiler();
+    const preprocessor = SettingsService.getLspConfigPreprocessors();
+
     const promise: E4EExternalConfigurationResponse | Error =
-      await this.e4e.getConfiguration(uri, defaultConfigs);
+      await this.e4e.getConfiguration(uri, {
+        compiler: compiler ?? defaultConfigs.compiler,
+        preprocessor: preprocessor ?? defaultConfigs.preprocessor,
+        type: defaultConfigs.type,
+      });
     if (promise instanceof Error) throw promise;
 
     const candidate = promise.pgroups.find(
@@ -189,7 +196,7 @@ export class CopybookDownloaderForE4E {
         element,
         endevorApi.profile,
       );
-      const filePath: string = CopybookDownloaderForE4E.getCopybookPath(
+      const filePath: string = await CopybookDownloaderForE4E.getCopybookPath(
         instance,
         use_map,
         this.storagePath,
@@ -203,7 +210,10 @@ export class CopybookDownloaderForE4E {
       if (resultElement instanceof Error) {
         this.outputChannel?.appendLine(resultElement.message);
       } else {
-        await fs.promises.writeFile(filePath, resultElement[0]);
+        await vscode.workspace.fs.writeFile(
+          vscode.Uri.file(filePath),
+          Buffer.from(resultElement[0]),
+        );
         return true;
       }
     } catch (err) {
@@ -218,7 +228,7 @@ export class CopybookDownloaderForE4E {
   ): Promise<boolean> {
     try {
       const instance = Utils.profileAsString(endevorApi.profile);
-      const filePath: string = CopybookDownloaderForE4E.getCopybookPath(
+      const filePath: string = await CopybookDownloaderForE4E.getCopybookPath(
         instance,
         member.dataset,
         this.storagePath,
@@ -233,7 +243,10 @@ export class CopybookDownloaderForE4E {
       if (memberContent instanceof Error) {
         this.outputChannel?.appendLine(memberContent.message);
       } else {
-        await fs.promises.writeFile(filePath, memberContent);
+        await vscode.workspace.fs.writeFile(
+          vscode.Uri.file(filePath),
+          Buffer.from(memberContent),
+        );
         return true;
       }
     } catch (err) {
@@ -242,12 +255,12 @@ export class CopybookDownloaderForE4E {
     return false;
   }
 
-  private static getCopybookPath(
+  private static async getCopybookPath(
     instance: string,
     mapped: string,
     downloadFolder: string,
     copybook: string,
-  ): string {
+  ): Promise<string> {
     let folder = CopybookURI.createDatasetPath(
       instance,
       mapped,
@@ -255,16 +268,28 @@ export class CopybookDownloaderForE4E {
       E4E_FOLDER,
     );
 
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+    try {
+      await vscode.workspace.fs.createDirectory(vscode.Uri.file(folder));
+    } catch (err) {
+      if (err instanceof vscode.FileSystemError.FileExists) {
+        // ok - directory already exists, nothing to do
+        getChannel().appendLine(
+          `FileExists error while allocating '${folder}' directory for copybooks: ${JSON.stringify(err)}`,
+        );
+      } else {
+        getChannel().appendLine(
+          `Unable to allocate ${folder} - ${hasMember(err, "msg") && typeof err.msg === "string" && err.msg} ${JSON.stringify(err)}`,
+        );
+      }
+    }
 
-    folder = Path.join(
-      folder,
+    folder = vscode.Uri.joinPath(
+      vscode.Uri.file(folder),
       copybook.substring(
         0,
         copybook.indexOf(".") !== -1 ? copybook.indexOf(".") : copybook.length,
       ),
-    );
-
+    ).fsPath;
     return folder;
   }
 

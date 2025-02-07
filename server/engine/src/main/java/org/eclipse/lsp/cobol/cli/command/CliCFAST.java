@@ -14,9 +14,9 @@
  */
 package org.eclipse.lsp.cobol.cli.command;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.eclipse.lsp.cobol.cfg.CFASTBuilder;
@@ -25,6 +25,7 @@ import org.eclipse.lsp.cobol.common.dialects.CobolLanguageId;
 import org.eclipse.lsp.cobol.common.model.tree.ProgramNode;
 import org.eclipse.lsp.cobol.common.pipeline.StageResult;
 import org.eclipse.lsp.cobol.dialects.ibm.ProcessingResult;
+import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -60,8 +61,9 @@ public class CliCFAST  implements Callable<Integer> {
         if (paths == null) {
           throw new Exception("Cannot find folder: " + workspace.toFile().getAbsolutePath());
         }
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new MessageJsonHandler(ImmutableMap.of()).getGson().newBuilder()
+            .setPrettyPrinting()
+            .create();
 
         Arrays.stream(paths)
             .filter(CliCFAST::isCobolFile)

@@ -60,7 +60,11 @@ public class VariableUsageNode extends Node implements DefinedAndUsedStructure, 
 
   @Override
   public List<Location> getDefinitions() {
-    return definitions.stream().map(VariableNode::getLocality).map(Locality::toLocation).collect(Collectors.toList());
+      List<Location> result = new ArrayList<>(definitions.size());
+      for (VariableNode definition : definitions) {
+          result.add(definition.getLocality().toLocation());
+      }
+      return result;
   }
 
   /**
@@ -68,10 +72,10 @@ public class VariableUsageNode extends Node implements DefinedAndUsedStructure, 
    * @param definition the definition node
    */
   public void addDefinition(VariableNode definition) {
-    definitions.add(definition);
+      definitions.add(definition);
   }
 
-  private Optional<VariableNode> getDefinition() {
+  public Optional<VariableNode> getDefinition() {
     if (definitions.isEmpty()) return Optional.empty();
     return Optional.of(definitions.get(0));
   }

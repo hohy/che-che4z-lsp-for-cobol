@@ -16,6 +16,7 @@
 package org.eclipse.lsp.cobol.implicitDialects.cics.utility;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp.cobol.common.dialects.DialectProcessingContext;
 import org.eclipse.lsp.cobol.common.error.ErrorSeverity;
 import org.eclipse.lsp.cobol.common.error.SyntaxError;
@@ -23,6 +24,7 @@ import org.eclipse.lsp.cobol.implicitDialects.cics.CICSLexer;
 import org.eclipse.lsp.cobol.implicitDialects.cics.CICSParser;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.eclipse.lsp.cobol.implicitDialects.cics.CICSParser.RULE_cics_delete;
 
@@ -34,7 +36,6 @@ public class CICSDeleteOptionsCheckUtility extends CICSOptionsCheckBaseUtility {
   private static final Map<Integer, ErrorSeverity> DUPLICATE_CHECK_OPTIONS =
           new HashMap<Integer, ErrorSeverity>() {
             {
-              put(CICSLexer.DELETE, ErrorSeverity.ERROR);
               put(CICSLexer.FILE, ErrorSeverity.ERROR);
               put(CICSLexer.TOKEN, ErrorSeverity.ERROR);
               put(CICSLexer.RIDFLD, ErrorSeverity.ERROR);
@@ -67,7 +68,7 @@ public class CICSDeleteOptionsCheckUtility extends CICSOptionsCheckBaseUtility {
   /**
    * Entrypoint to check CICS DELETE rule options
    *
-   * @param ctx ParserRuleContext subclass containging options
+   * @param ctx ParserRuleContext subclass containing options
    * @param <E> A subclass of ParserRuleContext
    */
   public <E extends ParserRuleContext> void checkOptions(E ctx) {
@@ -93,6 +94,10 @@ public class CICSDeleteOptionsCheckUtility extends CICSOptionsCheckBaseUtility {
   @SuppressWarnings("unchecked")
   private void checkDeleteGroupOne(CICSParser.Cics_delete_group_oneContext ctx) {
     checkHasMandatoryOptions(ctx.cics_file_name(), ctx, "FILE");
+    List<TerminalNode> file = ctx.cics_file_name().stream().map(CICSParser.Cics_file_nameContext::FILE).collect(Collectors.toList());
+    List<TerminalNode> dataset = ctx.cics_file_name().stream().map(CICSParser.Cics_file_nameContext::DATASET).collect(Collectors.toList());
+    checkHasMutuallyExclusiveOptions("FILE or DATASET", file, dataset);
+
     checkHasMutuallyExclusiveOptions("TOKEN or RIDFLD", ctx.TOKEN(), ctx.RIDFLD());
 
     if (ctx.RIDFLD().isEmpty()) checkHasIllegalOptions(ctx.cics_keylength(), "KEYLENGTH");
@@ -104,13 +109,12 @@ public class CICSDeleteOptionsCheckUtility extends CICSOptionsCheckBaseUtility {
 
   @SuppressWarnings("unchecked")
   private void checkDeleteGroupTwo(CICSParser.Cics_delete_group_twoContext ctx) {
-    checkHasExactlyOneOption("CHANNEL or EVENT or TIMER", ctx, ctx.CHANNEL(), ctx.EVENT(), ctx.TIMER());
+    checkHasExactlyOneOption("ACTIVITY or CHANNEL or EVENT or TIMER", ctx, ctx.ACTIVITY(), ctx.CHANNEL(), ctx.EVENT(), ctx.TIMER());
   }
 
   @SuppressWarnings("unchecked")
   private void checkDeleteGroupThree(CICSParser.Cics_delete_group_threeContext ctx) {
     checkHasMandatoryOptions(ctx.CONTAINER(), ctx, "CONTAINER");
-    checkHasMandatoryOptions(ctx.RETCODE(), ctx, "RETCODE");
     checkHasMutuallyExclusiveOptions("ACTIVITY or ACQACTIVITY or PROCESS or ACQPROCESS or CHANNEL",
             ctx.ACTIVITY(), ctx.ACQACTIVITY(), ctx.PROCESS(), ctx.ACQPROCESS(), ctx.CHANNEL());
   }
