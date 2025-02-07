@@ -36,7 +36,6 @@ import { hasMember, Utils } from "../../util/Utils";
 import { searchCopybookInExtensionFolder } from "../../util/FSUtils";
 import { getErrorMessage } from "../../util/ErrorsUtils";
 import { SettingsService } from "../../Settings";
-import path = require("node:path");
 import { getChannel } from "../../../extension";
 
 const defaultConfigs: ExternalConfigurationOptions = {
