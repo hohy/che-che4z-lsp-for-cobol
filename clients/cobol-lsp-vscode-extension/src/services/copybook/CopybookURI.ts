@@ -70,37 +70,31 @@ export class CopybookURI {
       zoweExplorerApi,
     );
 
-    let result: string[] = [];
+    const result: string[] = [];
     const datasets: string[] = SettingsService.getDsnPath(
       documentUri,
       dialectType,
     );
     if (profile && datasets) {
-      result = Object.assign([], datasets);
-      result.forEach(
-        (value, index) =>
-          (result[index] = vscode.Uri.joinPath(
-            vscode.Uri.file(downloadFolder),
-            profile,
-            value,
-          ).fsPath),
-      );
+      datasets.map((dataset) => {
+        result.push(
+          vscode.Uri.joinPath(vscode.Uri.file(downloadFolder), profile, dataset)
+            .fsPath,
+        );
+      });
     }
 
     const ussPaths: string[] = SettingsService.getUssPath(
       documentUri,
       dialectType,
     );
-    const baseIndex = result.length;
     if (profile && ussPaths) {
-      Object.assign([], ussPaths).forEach(
-        (value, index) =>
-          (result[index + baseIndex] = vscode.Uri.joinPath(
-            vscode.Uri.file(downloadFolder),
-            profile,
-            value,
-          ).fsPath),
-      );
+      ussPaths.map((ussPath) => {
+        result.push(
+          vscode.Uri.joinPath(vscode.Uri.file(downloadFolder), profile, ussPath)
+            .fsPath,
+        );
+      });
     }
     return result;
   }

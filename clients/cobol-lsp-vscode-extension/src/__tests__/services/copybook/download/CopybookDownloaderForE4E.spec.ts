@@ -20,15 +20,19 @@ import {
 } from "../../../../__mocks__/getE4EMock.utility";
 import * as extension from "../../../../extension";
 import * as vscode from "vscode";
-import { asMutable } from "../../../../test/suite/testHelper";
 
 describe("e4e copybook downloader tests", () => {
   let e4e: E4E;
+  let pathSeparator = "\\";
 
   beforeEach(() => {
     e4e = {} as E4E;
     jest.clearAllMocks();
     jest.restoreAllMocks();
+
+    jest.mock("path", () => ({
+      sep: pathSeparator,
+    }));
   });
 
   describe("checks copybook downloaded into correct path", () => {
@@ -39,9 +43,8 @@ describe("e4e copybook downloader tests", () => {
     });
 
     describe("windows", () => {
-      const separator = path.sep;
       beforeEach(() => {
-        asMutable(path).sep = "\\";
+        pathSeparator = "\\";
         jest
           .spyOn(vscode.Uri, "joinPath")
           .mockImplementation((base, ...args) =>
@@ -49,11 +52,7 @@ describe("e4e copybook downloader tests", () => {
           );
       });
 
-      afterAll(() => {
-        asMutable(path).sep = separator;
-      });
-
-      it("allocates the copybook path incrementally", async () => {
+      it("allocates the copybook path", async () => {
         expect(
           await CopybookDownloaderForE4E["getCopybookPath"](
             "Instance.Instance",
@@ -64,15 +63,7 @@ describe("e4e copybook downloader tests", () => {
         ).toEqual(
           "C:\\Users\\Developer\\globalStorage\\e4e\\copybooks\\Instance.Instance\\pgm\\Copy",
         );
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "C:\\Users\\Developer\\globalStorage\\e4e",
-        });
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "C:\\Users\\Developer\\globalStorage\\e4e\\copybooks",
-        });
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "C:\\Users\\Developer\\globalStorage\\e4e\\copybooks\\Instance.Instance",
-        });
+
         expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
           path: "C:\\Users\\Developer\\globalStorage\\e4e\\copybooks\\Instance.Instance\\pgm",
         });
@@ -80,15 +71,11 @@ describe("e4e copybook downloader tests", () => {
     });
 
     describe("unix", () => {
-      const separator = path.sep;
       beforeAll(() => {
-        asMutable(path).sep = "/";
+        pathSeparator = "/";
       });
 
-      afterAll(() => {
-        asMutable(path).sep = separator;
-      });
-      it("allocates the copybook path incrementally", async () => {
+      it("allocates the copybook path", async () => {
         expect(
           await CopybookDownloaderForE4E["getCopybookPath"](
             "Instance.Instance",
@@ -99,15 +86,6 @@ describe("e4e copybook downloader tests", () => {
         ).toEqual(
           "/home/developer/globalStorage/e4e/copybooks/Instance.Instance/pgm/Copy",
         );
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "/home/developer/globalStorage/e4e",
-        });
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "/home/developer/globalStorage/e4e/copybooks",
-        });
-        expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
-          path: "/home/developer/globalStorage/e4e/copybooks/Instance.Instance",
-        });
         expect(vscode.workspace.fs.createDirectory).toHaveBeenCalledWith({
           path: "/home/developer/globalStorage/e4e/copybooks/Instance.Instance/pgm",
         });
@@ -204,11 +182,11 @@ describe("e4e copybook downloader tests", () => {
   describe("check downloadDatasetE4E nominal performs writeFile with correct path and content", () => {
     const separator = path.sep;
     beforeAll(() => {
-      asMutable(path).sep = "/";
+      pathSeparator = "/";
     });
 
     afterAll(() => {
-      asMutable(path).sep = separator;
+      pathSeparator = separator;
     });
 
     it("writes to correct path and content", async () => {

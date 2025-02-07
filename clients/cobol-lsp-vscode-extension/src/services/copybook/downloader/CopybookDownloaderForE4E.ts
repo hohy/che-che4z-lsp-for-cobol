@@ -269,40 +269,18 @@ export class CopybookDownloaderForE4E {
       E4E_FOLDER,
     );
 
-    /**
-     * There is an issue with VSCode File Watcher on Linux where it
-     * fails to watch subfolders changes when more subfolders are created
-     * all at once.
-     * https://github.com/microsoft/vscode/issues/142694
-     *
-     * As a workaround, the path is splitted into individual subfolders
-     * are they are created incrementally one by one.
-     */
-    const subfoldersPath = folder.replace(`${downloadFolder}${path.sep}`, "");
-    const subfolders = subfoldersPath.split(path.sep);
-    let finishedPath = downloadFolder;
-    for (const subfolder of subfolders) {
-      finishedPath = vscode.Uri.joinPath(
-        vscode.Uri.file(finishedPath),
-        subfolder,
-      ).fsPath;
-
-      try {
-        await vscode.workspace.fs.createDirectory(
-          vscode.Uri.file(finishedPath),
+    try {
+      await vscode.workspace.fs.createDirectory(vscode.Uri.file(folder));
+    } catch (err) {
+      if (err instanceof vscode.FileSystemError.FileExists) {
+        // ok - directory already exists, nothing to do
+        getChannel().appendLine(
+          `FileExists error while allocating '${folder}' directory for copybooks: ${JSON.stringify(err)}`,
         );
-      } catch (err) {
-        if (err instanceof vscode.FileSystemError.FileExists) {
-          // ok - directory already exists, nothing to do
-          getChannel().appendLine(
-            `FileExists error while allocating '${finishedPath}' directory for copybooks: ${JSON.stringify(err)}`,
-          );
-        } else {
-          getChannel().appendLine(
-            `Unable to allocate ${finishedPath} - ${hasMember(err, "msg") && typeof err.msg === "string" && err.msg} ${JSON.stringify(err)}`,
-          );
-          break;
-        }
+      } else {
+        getChannel().appendLine(
+          `Unable to allocate ${folder} - ${hasMember(err, "msg") && typeof err.msg === "string" && err.msg} ${JSON.stringify(err)}`,
+        );
       }
     }
 
