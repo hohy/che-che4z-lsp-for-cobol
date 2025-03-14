@@ -33,7 +33,7 @@ import {
 } from "../../../constants";
 import { CopybookName } from "../CopybookDownloadService";
 import { hasMember, Utils } from "../../util/Utils";
-import { searchCopybookInExtensionFolder } from "../../util/FSUtils";
+import { createFileSearchPattern } from "../../util/FSUtils";
 import { getErrorMessage } from "../../util/ErrorsUtils";
 import { SettingsService } from "../../Settings";
 
@@ -342,20 +342,15 @@ export class CopybookDownloaderForE4E {
       use_map = first.use_map ? USE_MAP : "";
       instance = CopybookURI.getEnviromentPath(first, config.profile);
     } else return;
-    const targetFolder = [
-      CopybookURI.createDatasetPath(
-        instance,
-        use_map,
-        this.storagePath,
-        E4E_FOLDER,
-      ).fsPath,
-    ];
-
-    return searchCopybookInExtensionFolder(
-      copybookName,
-      targetFolder,
-      [""],
+    const targetFolder = CopybookURI.createDatasetPath(
+      instance,
+      use_map,
       this.storagePath,
+      E4E_FOLDER,
     );
+
+    const searchPattern = createFileSearchPattern(targetFolder, copybookName);
+    const files = await vscode.workspace.findFiles(searchPattern);
+    return files[0];
   }
 }

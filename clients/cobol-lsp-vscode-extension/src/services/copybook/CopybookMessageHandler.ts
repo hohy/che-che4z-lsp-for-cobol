@@ -13,15 +13,11 @@
  */
 
 import { SettingsService } from "../Settings";
-import { searchCopybookInExtensionFolder } from "../util/FSUtils";
 import { CopybookURI } from "./CopybookURI";
 import { Uri } from "vscode";
-
-enum CopybookFolderKind {
-  "local",
-  "downloaded-dsn",
-  "downloaded-uss",
-}
+import * as vscode from "vscode";
+import { searchLocalCopybooks } from "./LocalCopybooksService";
+import { LocalFilesystemResourceService } from "../LocalFilesystemResourceService";
 
 export async function searchCopybook(
   documentUri: string,
@@ -29,73 +25,56 @@ export async function searchCopybook(
   dialectType: string,
   storagePath: string,
 ): Promise<Uri | undefined> {
-  let result: Uri | undefined;
-
-  for (let i = 0; i < Object.values(CopybookFolderKind).length; i++) {
-    const folderKind = Object.values(CopybookFolderKind)[i];
-    const targetFolder = await getTargetFolderForCopybook(
-      folderKind,
-      documentUri,
-      dialectType,
-      storagePath,
-    );
-    const allowedExtensions = await resolveAllowedExtensions(
-      folderKind,
-      documentUri,
-    );
-    result = searchCopybookInExtensionFolder(
-      copybookName,
-      targetFolder,
-      allowedExtensions,
-      storagePath,
-    );
-    if (result) {
-      return result;
-    }
+  // search local paths
+  const localPathResults = await searchLocalCopybooks(
+    documentUri,
+    copybookName,
+    dialectType,
+  );
+  if (localPathResults) {
+    return localPathResults;
   }
-  return result;
+
+  // search cached dataset results
+  const dsnPaths = SettingsService.getDsnPath(documentUri, dialectType);
+  const ussPaths = SettingsService.getUssPath(documentUri, dialectType);
+  const cachedRemoteResults = await searchCachedRemoteCopybooks(
+    dsnPaths.concat(ussPaths),
+    copybookName,
+    storagePath,
+  );
+
+  if (cachedRemoteResults) {
+    return cachedRemoteResults;
+  }
 }
 
-async function getTargetFolderForCopybook(
-  folderKind: string | CopybookFolderKind,
-  documentUri: string,
-  dialectType: string,
+async function searchCachedRemoteCopybooks(
+  locations: string[],
+  copybookName: string,
   storagePath: string,
-): Promise<string[]> {
-  let result: string[] = [];
+) {
   const profile = SettingsService.getProfileName()!;
-  switch (folderKind) {
-    case CopybookFolderKind[CopybookFolderKind.local]:
-      result = await SettingsService.getCopybookLocalPath(
-        documentUri,
-        dialectType,
-      );
-      break;
-    case CopybookFolderKind[CopybookFolderKind["downloaded-dsn"]]:
-      result = SettingsService.getDsnPath(documentUri, dialectType).map(
-        (dnsPath) =>
-          CopybookURI.createDatasetPath([profile], dnsPath, storagePath).fsPath,
-      );
-      break;
-    case CopybookFolderKind[CopybookFolderKind["downloaded-uss"]]:
-      result = SettingsService.getUssPath(documentUri, dialectType).map(
-        (dnsPath) =>
-          CopybookURI.createDatasetPath([profile], dnsPath, storagePath).fsPath,
-      );
-      break;
-  }
-  return result;
-}
+  const searchDirectoryUris = locations.map((location) =>
+    CopybookURI.createDatasetPath([profile], location, storagePath),
+  );
 
-async function resolveAllowedExtensions(
-  folderKind: string | CopybookFolderKind,
-  documentUri: string,
-): Promise<string[] | undefined> {
-  switch (folderKind) {
-    case "downloaded-dsn":
-    case "downloaded-uss":
-      return [""];
-    default:
-      return SettingsService.getCopybookExtension(documentUri);
-  }
+  const results = await Promise.allSettled(
+    searchDirectoryUris.map(async (directoryUri) =>
+      LocalFilesystemResourceService.searchDirectory(
+        directoryUri,
+        copybookName,
+        [""],
+      ),
+    ),
+  );
+
+  const validResults: vscode.Uri[] = [];
+  results.forEach((result) => {
+    if (result.status === "fulfilled" && result.value) {
+      validResults.push(result.value);
+    }
+  });
+
+  return validResults[0];
 }
