@@ -13,12 +13,7 @@
  */
 
 import * as vscode from "vscode";
-import {
-  COPYBOOKS_FOLDER,
-  ENDEVOR_PROCESSOR,
-  PROVIDE_PROFILE_MSG,
-  ZOWE_FOLDER,
-} from "../../constants";
+import { ENDEVOR_PROCESSOR, PROVIDE_PROFILE_MSG } from "../../constants";
 import { ProfileUtils } from "../util/ProfileUtils";
 import { DownloadUtil } from "./downloader/DownloadUtil";
 import { E4E } from "../../type/e4eApi";
@@ -27,9 +22,6 @@ import { CopybookDownloaderForUss } from "./downloader/CopybookDownloaderForUss"
 import { CopybookDownloaderForDsn } from "./downloader/CopybookDownloaderForDsn";
 import { SettingsService } from "../Settings";
 import { searchCopybook } from "./CopybookMessageHandler";
-import { searchCopybookInExtensionFolder } from "../util/FSUtils";
-import { CopybookURI } from "./CopybookURI";
-import path = require("path");
 import { getErrorMessage } from "../util/ErrorsUtils";
 
 export class CopybookName {
@@ -160,19 +152,6 @@ export class CopybookDownloadService {
     if (result) {
       return result.toString();
     }
-
-    // check in subfolders under copybooks (copybook downloaded from MF)
-    return searchCopybookInExtensionFolder(
-      copybookName,
-      CopybookURI.createPathForCopybookDownloaded(
-        documentUri,
-        dialectType,
-        path.join(this.storagePath, ZOWE_FOLDER, COPYBOOKS_FOLDER),
-        this.explorerApi,
-      ),
-      await SettingsService.getCopybookExtension(documentUri),
-      this.storagePath,
-    )?.toString();
   }
 
   constructor(
